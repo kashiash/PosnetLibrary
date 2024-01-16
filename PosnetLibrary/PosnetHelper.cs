@@ -1,15 +1,183 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Net.Sockets;
+using System.Text;
 
 namespace PosnetLibrary
 {
     public class PosnetHelper
     {
+        static string host = "192.168.50.166";
+        static int port = 6666;
+
 
         const string STX = "\u0002";
         const string TAB = "\u0009";
         const string ETX = "\u0003";
         const string LF = "\u000A";
 
+        enum paymentType
+        {
+            Gotowka = 0,
+            Karta = 2,
+            Czeka = 3,
+            Bon = 4,
+            Kredyt = 5,
+            Inna = 6,
+            Voucher = 7,
+            Przelew = 8
+        }
+
+        public static void PrintRecipe(FiscalReceipt receipt)
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            CultureInfo polishCulture = new CultureInfo("pl-PL");
+            using (TcpClient client = new TcpClient(host, port))
+            {
+                using (NetworkStream stream = client.GetStream())
+                {
+                    try
+                    {
+                        SendCommand(stream, new string[] { "trinit", "bm1" });
+                        //"\u0002trline\u0009naChleb\u0009vt1\u0009pr200\u0009#B23A\u0003",
+                        foreach (var item in receipt.FiscalReceiptItems)
+                        {
+                            string formattedquantity = item.Quantity.ToString("0.##", polishCulture);
+                            double price = (item.GrossAmount * 100.0 / item.Quantity);
+                            SendCommand(stream, new string[] { "trline",
+                            $"na{item.ItemName.Truncate(80)}",
+                            $"vt{item.VatRate}",
+                            $"pr{(int)price}",
+                            $"il{formattedquantity}",
+                            $"wa{(int)(item.GrossAmount * 100)}" ,
+                            $"op{item.Description.Truncate(50)}"
+                            });
+                        }
+                        SendCommand(stream, new string[] { "trend", $"to{(int)(receipt.GrossAmount * 100)}" });
+                    }
+                    catch (Exception ex)
+                    {
+                        AnulowanieTransakcji();
+                    }
+
+                }
+            }
+        }
+
+
+        public static void DailyReport()
+        {
+
+            using (TcpClient client = new TcpClient(host, port))
+            {
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "dailyrep" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+        public static void SetHeader(string nazwaFirmy, string miejscowosc, string kod)
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    SendCommand(stream, new string[] { "hdrset", $"tx&c&b&1{nazwaFirmy}&1{LF}&c&b&2{kod}&2 &3 {miejscowosc}&3", "pr1" });
+                }
+            }
+        }
+
+        public static void AnulowanieTransakcji()
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "prncancel" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+        private static void SendCommand(NetworkStream stream, string[] command)
+        {
+
+            SendByEthernet(PosnetHelper.fullCommandEncodedCrced(command), stream);
+        }
+        private static void SendByEthernet(byte[] data, NetworkStream stream)
+        {
+
+            // Wysyłanie danych
+            stream.Write(data, 0, data.Length);
+
+            //foreach (byte b in data)
+            //{
+            //    Console.Write($"{b:X2} ");
+            //}
+            Console.WriteLine();
+            Console.WriteLine($"Wysłano: {data.ToString()}");
+
+            // Odbieranie odpowiedzi
+            byte[] buffer = new byte[1024];
+            int bytesRead = stream.Read(buffer, 0, buffer.Length);
+            string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+            Console.WriteLine();
+            Console.WriteLine($"Odpowiedź od serwera: {response}");
+            if (response.Contains("ERR") || response.Contains("?"))
+            {
+                ExtractError(response);
+                throw new Exception($"Posnet Error {response}");
+            }
+
+        }
+
+
+        private static void SendByEthernet(string dataToSend, NetworkStream stream)
+        {
+            // Konwersja danych na tablicę bajtów
+            byte[] data = Encoding.UTF8.GetBytes(dataToSend);
+
+            // Wysyłanie danych
+            stream.Write(data, 0, data.Length);
+
+            //foreach (byte b in data)
+            //{
+            //    Console.Write($"{b:X2} ");
+            //}
+            Console.WriteLine();
+            Console.WriteLine($"Wysłano: {dataToSend}");
+
+            // Odbieranie odpowiedzi
+            byte[] buffer = new byte[1024];
+            int bytesRead = stream.Read(buffer, 0, buffer.Length);
+            string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+            Console.WriteLine();
+            Console.WriteLine($"Odpowiedź od serwera: {response}");
+            if (response.Contains("ERR") || response.Contains("?"))
+            {
+                ExtractError(response);
+                throw new Exception($"Posnet Error {response}");
+            }
+
+        }
+
+
+        private static void ExtractError(string response)
+        {
+            string[] result = response.Split(new string[] { STX, TAB, ETX, LF, " " }, StringSplitOptions.RemoveEmptyEntries);
+            var code = result.Where(r => r.Contains("?")).FirstOrDefault();
+            var message = ErrorHelper.GetErrorDescription(code);
+            Console.WriteLine(message);
+
+        }
         public static string fullCommand(string[] command)
         {
 
