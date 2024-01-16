@@ -185,20 +185,37 @@ namespace PosnetTests
 
 
 
-        //[Test]
-        //public void SetFooterTest()
-        //{
-        //    using (TcpClient client = new TcpClient(host, port))
-        //    {
-        //        // Uzyskanie strumienia sieciowego
-        //        using (NetworkStream stream = client.GetStream())
-        //        {
-        //            PosnetHelper.SendCommand(stream, new string[] { "ftrinfoset", $"tx&c&bPILES? NIE JEDZ!&c&b{LF}&c&b NIE PILES? WYPIJ!&c&b{LF}&c&HFLEETMAN RULEZ&H&c" });
-        //        }
-        //    }
-        //}
+        [Test]
+        public void SetFooterTest()
+        {
+
+            PosnetHelper.SetFooter($"Nr transakcji: PA/2024/666/999/00125 {LF}Opis: {LF}Wydrukowano z programu Fleetman   &iwww.fleetman.com.pl");
+
+        }
 
 
+        [Test]
+        public void FleetmanRecipeTest()
+        {
+
+            var receipt = new FiscalReceipt();
+            receipt.BuyerNIP = "6971061467";
+            receipt.TransactionNumber = "PA/2024/666/999/00125";
+            receipt.FiscalReceiptItems = new List<ItemOnFiscalReceipt>();
+            receipt.Notes = "Lorem ipsum dolor sit amet, consectetur adipiscing orci.";
+            var line1 = new ItemOnFiscalReceipt("Porsche Panamera E-Hybrid", 2960, 5, "0"); receipt.FiscalReceiptItems.Add(line1);
+
+
+
+            //for (int i = 1; i <= 20; i++)
+            //{
+            var line2 = new ItemOnFiscalReceipt("Fotelik op³ata dodatkowa", 100, 1, "1"); receipt.FiscalReceiptItems.Add(line2);
+            var line3 = new ItemOnFiscalReceipt("Telefon satelitarny op³ata dodatkowa", 255, 5, "2", "dalsze obci¹zenie na podstawie bilingu"); receipt.FiscalReceiptItems.Add(line3);
+            var line4 = new ItemOnFiscalReceipt("Dodatkowy kierowca", 300, 2, "2"); receipt.FiscalReceiptItems.Add(line4);
+            //  }
+
+            PosnetHelper.PrintRecipe(receipt);
+        }
 
 
 
@@ -218,7 +235,7 @@ namespace PosnetTests
             //for (int i = 1; i <= 20; i++)
             //{
             var line2 = new ItemOnFiscalReceipt("Orzeszki", 100, 25, "1"); receipt.FiscalReceiptItems.Add(line2);
-            var line3 = new ItemOnFiscalReceipt("Paluszki", 55, 5.5, "2", "Paluszki bardzo slone,¥¯ŒÆÊÑ£Ó¹¿œŸæñó³"); receipt.FiscalReceiptItems.Add(line3);
+            var line3 = new ItemOnFiscalReceipt("Paluszki", 55, 5.5, "2", "Paluszki bardzo s³one,¥¯ŒÆÊÑ£Ó¹¿œŸæñó³"); receipt.FiscalReceiptItems.Add(line3);
             var line4 = new ItemOnFiscalReceipt("Rzodkiewki", 110, 5.5, "2", "Wersja ekologiczna z nalotem pleœniowym"); receipt.FiscalReceiptItems.Add(line4);
             //  }
 

@@ -30,6 +30,8 @@ namespace PosnetLibrary
         public static void PrintRecipe(FiscalReceipt receipt)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            SetFooter(receipt.TransactionNumber, receipt.Notes);
+
             CultureInfo polishCulture = new CultureInfo("pl-PL");
             using (TcpClient client = new TcpClient(host, port))
             {
@@ -37,7 +39,15 @@ namespace PosnetLibrary
                 {
                     try
                     {
+
                         SendCommand(stream, new string[] { "trinit", "bm1" });
+
+                        if (!string.IsNullOrEmpty(receipt.BuyerNIP))
+                        {
+                            var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "trnipset", $"ni{receipt.BuyerNIP}" });
+
+                            SendByEthernet(endLineCommand, stream);
+                        }
                         //"\u0002trline\u0009naChleb\u0009vt1\u0009pr200\u0009#B23A\u0003",
                         foreach (var item in receipt.FiscalReceiptItems)
                         {
@@ -79,6 +89,40 @@ namespace PosnetLibrary
             }
         }
 
+        public static void SetFooter(string numerTransakcji, string opis = "")
+        {
+            string linia1 = FormatujLinie("Nr transakcji:", numerTransakcji, true);
+            string linia3 = FormatujLinie("Wydrukowano z programu Fleetman", "www.fleetman.com.pl");
+            SetFooter($"{linia1}{LF}Opis:{opis.Truncate(50)}{LF}{linia3}");
+        }
+
+        private static string FormatujLinie(string prefix, string postfix, bool posfixbolded = false)
+        {
+            int desiredLength = 56;
+            int remainingSpaces = desiredLength - prefix.Length - postfix.Length;
+
+            // Wypełnianie spacjami po obu stronach
+            if (posfixbolded)
+            {
+                return $"{prefix}{new string(' ', remainingSpaces)}&s{postfix}";
+            }
+
+            return prefix + new string(' ', remainingSpaces) + postfix;
+
+        }
+
+        public static void SetFooter(string footer)
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+                // Uzyskanie strumienia sieciowego
+                using (NetworkStream stream = client.GetStream())
+                {
+                    SendCommand(stream, new string[] { "ftrinfoset", $"tx{footer}" });
+                }
+            }
+        }
+
         public static void SetHeader(string nazwaFirmy, string miejscowosc, string kod)
         {
             using (TcpClient client = new TcpClient(host, port))
@@ -105,6 +149,19 @@ namespace PosnetLibrary
             }
         }
 
+        public static void SetBuyerNIP(string nip)
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "trnipset", $"ni{nip}" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
         private static void SendCommand(NetworkStream stream, string[] command)
         {
 
@@ -121,12 +178,13 @@ namespace PosnetLibrary
             //    Console.Write($"{b:X2} ");
             //}
             Console.WriteLine();
-            Console.WriteLine($"Wysłano: {data.ToString()}");
+            Encoding win1250 = Encoding.GetEncoding(1250);
+            Console.WriteLine($"Wysłano: {win1250.GetString(data)}");
 
             // Odbieranie odpowiedzi
             byte[] buffer = new byte[1024];
             int bytesRead = stream.Read(buffer, 0, buffer.Length);
-            string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+            string response = win1250.GetString(buffer, 0, bytesRead);
 
             Console.WriteLine();
             Console.WriteLine($"Odpowiedź od serwera: {response}");
@@ -395,5 +453,7 @@ namespace PosnetLibrary
             //return ($"{(hi << 8) | lo}");
             return ((hi << 8) | lo).ToString("X");
         }
+
+
     }
 }

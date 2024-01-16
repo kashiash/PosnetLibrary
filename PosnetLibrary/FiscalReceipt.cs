@@ -1,21 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PosnetLibrary
+﻿namespace PosnetLibrary
 {
     public class FiscalReceipt
     {
         public double GrossAmount => FiscalReceiptItems.Sum(i => i.GrossAmount);
 
-        public  List<ItemOnFiscalReceipt> FiscalReceiptItems { get; set; }
+        public List<ItemOnFiscalReceipt> FiscalReceiptItems { get; set; }
 
         public FiscalReceipt()
         {
-             FiscalReceiptItems = new List<ItemOnFiscalReceipt>();
+            FiscalReceiptItems = new List<ItemOnFiscalReceipt>();
         }
-
+        public string BuyerNIP { get; set; }
+        public string TransactionNumber { get; set; }
+        public string Notes { get; set; }
     }
 }
