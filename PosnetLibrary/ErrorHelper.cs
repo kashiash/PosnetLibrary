@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PosnetLibrary
+﻿namespace PosnetLibrary
 {
     public class ErrorHelper
     {
@@ -424,6 +418,7 @@ namespace PosnetLibrary
 
         internal static Dictionary<int, string> FrameErrorMessages = new Dictionary<int, string>()
         {
+
             { 1, "PROTO_ERR_CMD_UNKNOWN: Nierozpoznana komenda" },
             { 2, "PROTO_ERR_CMD_MANDATORY_FIELDS: Brak obowiązkowego pola" },
             { 3, "PROTO_ERR_DATA_CONVERSION: Błąd konwersji pola (np.: przesłana została wartość z przecinkiem w polu którego wartość przesyła się w częściach setnych np.: 12,34 zamiast 1234, lub przekroczony zakres danych)" },

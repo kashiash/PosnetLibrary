@@ -2,7 +2,7 @@
 {
     public class ItemOnFiscalReceipt
     {
-        public ItemOnFiscalReceipt(string itemName, double grossAmount, double quantity, string vatSymbol, string? description = null )
+        public ItemOnFiscalReceipt(string itemName, double grossAmount, double quantity, string vatSymbol, string? description = "Opis")
         {
             ItemName = itemName;
             GrossAmount = grossAmount;
@@ -15,6 +15,6 @@
 
         public double Quantity { get; set; }
         public string VatRate { get; set; }
-        public string? Description { get; set; }
+        public string Description { get; set; }
     }
 }
