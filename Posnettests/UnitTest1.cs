@@ -154,7 +154,65 @@ namespace PosnetTests
 
         }
 
+        [Test]
+        public void EparagonReportTest()
+        {
+            PosnetHelper.EparagonGet();
 
+        }
+
+        [Test]
+        public void EparagongetStatusTest()
+        {
+            PosnetHelper.EparagonGetStatus();
+
+        }
+
+
+
+        [Test]
+        public void EparagonSetScheduleTest()
+        {
+            PosnetHelper.EparagonSetSchedule(10, 15, 60, 1200, 100000);
+        }
+
+        [Test]
+        public void EparagonGetScheduleTest()
+        {
+            PosnetHelper.EparagonGetSchedule();
+        }
+
+        [Test]
+        public void EparagonSetStatusTest()
+        {
+            PosnetHelper.EparagonSetStatus(1);
+
+        }
+
+        [Test]
+        public void EparagongetServerStatusTest()
+        {
+            PosnetHelper.EparagonGetStatus(1);
+
+        }
+
+        [Test]
+        public void EparagonSetTest()
+        {
+            PosnetHelper.EparagonSetServer("https://debesciaki.free.beeceptor.com");
+        }
+
+        [Test]
+        public void EparagonSetServerDodTest()
+        {
+            PosnetHelper.EparagonSetServer(0, "https://debesciaki.free.beeceptor.com");
+        }
+
+        [Test]
+        public void EparagonServerConnectionTest()
+        {
+            PosnetHelper.EparagonTestServerConnection("https://debesciaki.free.beeceptor.com");
+        }
 
         //[Test]
         //public void DisplayMessageTest()
@@ -217,15 +275,26 @@ namespace PosnetTests
             PosnetHelper.PrintRecipe(receipt);
         }
 
+        [Test]
+        public void TestSetIDZ()
+        {
+            PosnetHelper.EparagonSetNextIDZ("PA/2024/666/999/00125");
+        }
 
-
-
+        [Test]
+        public void TestCreateEdocument()
+        {
+            PosnetHelper.EparagonNewDocumentByIDZ("PA/2024/666/999/00125");
+        }
 
         [Test]
         public void FiscalRecipeTest()
         {
 
             var receipt = new FiscalReceipt();
+            receipt.BuyerNIP = "6971061467";
+            receipt.TransactionNumber = "PA/2024/666/999/00125";
+
             receipt.FiscalReceiptItems = new List<ItemOnFiscalReceipt>();
 
             var line1 = new ItemOnFiscalReceipt("Piwerko---------•Øåè∆ —£”πøúüÊÒÛ≥-------IBU Pyszne", 20, 5, "0"); receipt.FiscalReceiptItems.Add(line1);

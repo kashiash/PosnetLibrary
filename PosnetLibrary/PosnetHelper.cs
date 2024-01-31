@@ -72,7 +72,35 @@ namespace PosnetLibrary
                 }
             }
         }
+        public static void EparagonGet()
+        {
 
+            using (TcpClient client = new TcpClient(host, port))
+            {
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "eparagondefaultget" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+
+        public static void EparagonSetServer(string url)
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "eparagondefaultset", $"ad{url}", "ct0", "gi1", "hd1", "gb1", "td1" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
 
         public static void DailyReport()
         {
@@ -455,5 +483,133 @@ namespace PosnetLibrary
         }
 
 
+
+
+        public static void EparagonGetStatus()
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "eparagonstatusget" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+
+
+        public static void EparagonSetStatus(int status)
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "eparagonstatusset", $"st{status}" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+        public static void EparagonSetNextIDZ(string idz)
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "eparagonidznext", $"id{idz}" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+        public static void EparagonNewDocumentByIDZ(string idz)
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "eparagonidzprev", $"id{idz}" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+        public static void EparagonTestServerConnection(string url)
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "eparagonconnectiontest", $"ad{url}" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+        public static void EparagonSetServer(int recNo, string url)
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "eparagonserverins", $"rn{recNo}", $"ad{url}", "ct0", "gi1", "hd1", "gb1", "td1" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+        public static void EparagonGetStatus(int recNo)
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "eparagonserverget", $"rn{recNo}" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+        public static void EparagonSetSchedule(int sa, int sb, int sc, int op, int tl)
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "eparagonsheduleset", $"sa{sa}", $"sb{sb}", $"sc{sc}", $"op{op}", $"tl{tl}" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+        public static void EparagonGetSchedule()
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "eparagonsheduleget" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
     }
 }
