@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
@@ -60,6 +61,9 @@ namespace PosnetTests
         {
             try
             {
+                // Anulujemy ewentualną otwartą transakcję przed ustawieniem nagłówka
+                await EnsureNoOpenTransaction();
+                
                 await SpeechService.SpeakAsync("Ustawiam nagłówek paragonu. Drukarka będzie drukować paragon z nowym nagłówkiem.");
                 
                 var nazwaFirmy = "Fryj z Hasioka";
@@ -74,6 +78,8 @@ namespace PosnetTests
             {
                 string errorMessage = $"Wystąpił błąd podczas ustawiania nagłówka. {GetErrorMessage(ex)}";
                 await SpeechService.SpeakAsync(errorMessage);
+                // Próbujemy anulować transakcję w przypadku błędu
+                await EnsureNoOpenTransaction();
                 throw;
             }
         }
@@ -146,6 +152,9 @@ namespace PosnetTests
         {
             try
             {
+                // Anulujemy ewentualną otwartą transakcję przed rozpoczęciem
+                await EnsureNoOpenTransaction();
+                
                 await SpeechService.SpeakAsync("Rozpoczynam drukowanie paragonu fiskalnego.");
 
                 var receipt = new FiscalReceipt
@@ -170,6 +179,8 @@ namespace PosnetTests
             {
                 string errorMessage = $"Wystąpił błąd podczas drukowania paragonu. {GetErrorMessage(ex)}";
                 await SpeechService.SpeakAsync(errorMessage);
+                // Próbujemy anulować transakcję w przypadku błędu
+                await EnsureNoOpenTransaction();
                 throw;
             }
         }
@@ -183,6 +194,9 @@ namespace PosnetTests
         {
             try
             {
+                // Anulujemy ewentualną otwartą transakcję przed ustawieniem stawek VAT
+                await EnsureNoOpenTransaction();
+                
                 await SpeechService.SpeakAsync("Sprawdzam stawki VAT w drukarce.");
                 
                 // Sprawdzamy stawki VAT - próbujemy je pobrać
@@ -211,6 +225,8 @@ namespace PosnetTests
             {
                 string errorMessage = $"Wystąpił błąd podczas sprawdzania lub ustawiania stawek VAT. {GetErrorMessage(ex)}";
                 await SpeechService.SpeakAsync(errorMessage);
+                // Próbujemy anulować transakcję w przypadku błędu
+                await EnsureNoOpenTransaction();
                 throw;
             }
         }
@@ -223,6 +239,9 @@ namespace PosnetTests
         {
             try
             {
+                // Anulujemy ewentualną otwartą transakcję przed rozpoczęciem
+                await EnsureNoOpenTransaction();
+                
                 // Krok 1: Sprawdzenie stawek VAT
                 await SpeechService.SpeakAsync("Rozpoczynam kompleksowy test. Krok pierwszy: sprawdzam stawki VAT w drukarce.");
                 
@@ -270,10 +289,205 @@ namespace PosnetTests
             {
                 string errorMessage = $"Wystąpił błąd podczas wykonywania kompleksowego testu. {GetErrorMessage(ex)}";
                 await SpeechService.SpeakAsync(errorMessage);
+                // Próbujemy anulować transakcję w przypadku błędu
+                await EnsureNoOpenTransaction();
                 throw;
             }
         }
 
+
+        /// <summary>
+        /// Test drukowania paragonu pozycja po pozycji z produktami dla żulika.
+        /// Każda pozycja jest opisywana głosowo, a następnie od razu wysyłana do drukarki.
+        /// </summary>
+        [Test]
+        public async Task PrintReceiptItemByItemWithSlangProducts()
+        {
+            System.Net.Sockets.TcpClient? client = null;
+            System.Net.Sockets.NetworkStream? stream = null;
+            
+            try
+            {
+                // Anulujemy ewentualną otwartą transakcję
+                await EnsureNoOpenTransaction();
+                
+                await SpeechService.SpeakAsync("Rozpoczynam drukowanie paragonu z produktami dla żulika. Będę dodawać pozycje jedna po drugiej i od razu wysyłać je do drukarki.");
+                
+                var receipt = new FiscalReceipt
+                {
+                    TransactionNumber = "PA/2024/666/999/00125",
+                    Notes = "Paragon z produktami dla żulika"
+                };
+
+                // Lista produktów dla żulika z cenami
+                var produkty = new[]
+                {
+                    ("Fajki za dyszkę", 10.00, 1.0, "1", "Papierosy"),
+                    ("Piwerko kraftowe", 8.50, 2.0, "1", "Piwo kraftowe"),
+                    ("Cola", 4.50, 1.0, "1", "Coca Cola"),
+                    ("Orzeszki", 6.00, 1.0, "1", "Orzeszki ziemne"),
+                    ("Chipsy", 7.50, 2.0, "1", "Chipsy ziemniaczane"),
+                    ("Woda gazowana", 3.00, 1.0, "1", "Woda mineralna"),
+                    ("Kawa", 12.00, 1.0, "1", "Kawa espresso"),
+                    ("Szkloki", 5.50, 1.0, "1", "Cukierki"),
+                    ("Guma", 4.00, 2.0, "1", "Gumy do żucia"),
+                    ("Energetyk", 6.50, 1.0, "1", "Napój energetyczny")
+                };
+                
+                // Ustawiamy stopkę przed rozpoczęciem transakcji
+                await SpeechService.SpeakAsync("Ustawiam stopkę paragonu.");
+                PosnetHelper.SetFooter(receipt.TransactionNumber, receipt.Notes);
+                
+                // Rozpoczynamy transakcję
+                await SpeechService.SpeakAsync("Rozpoczynam transakcję w drukarce.");
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                System.Globalization.CultureInfo polishCulture = new System.Globalization.CultureInfo("pl-PL");
+                
+                client = new System.Net.Sockets.TcpClient(host, port);
+                stream = client.GetStream();
+                
+                // Rozpoczęcie transakcji
+                SendCommandToStream(stream, new string[] { "trinit", "bm1" });
+                
+                // Dodajemy pozycje jedna po drugiej z narracją i od razu wysyłamy do drukarki
+                double totalAmount = 0;
+                
+                foreach (var (nazwa, cena, ilosc, vat, opis) in produkty)
+                {
+                    double pozycjaKwota = cena * ilosc;
+                    totalAmount += pozycjaKwota;
+                    
+                    // Uproszczone dyktowanie - mówimy nazwę produktu i kwotę
+                    string nazwaLower = nazwa.ToLower();
+                    int kwotaZlote = (int)pozycjaKwota;
+                    int kwotaGrosze = (int)((pozycjaKwota - kwotaZlote) * 100);
+                    
+                    if (kwotaGrosze == 0)
+                    {
+                        await SpeechService.SpeakAsync($"{nazwaLower} za {kwotaZlote}");
+                    }
+                    else
+                    {
+                        await SpeechService.SpeakAsync($"{nazwaLower} za {kwotaZlote} {kwotaGrosze}");
+                    }
+                    
+                    // Wysyłamy pozycję do drukarki
+                    string formattedquantity = ilosc.ToString("0.##", polishCulture);
+                    double price = (pozycjaKwota * 100.0 / ilosc);
+                    SendCommandToStream(stream, new string[] { "trline",
+                        $"na{nazwa.Truncate(80)}",
+                        $"vt{vat}",
+                        $"pr{(int)price}",
+                        $"il{formattedquantity}",
+                        $"wa{(int)(pozycjaKwota * 100)}",
+                        $"op{opis.Truncate(50)}"
+                    });
+                }
+                
+                await SpeechService.SpeakAsync($"Wszystkie {produkty.Length} pozycji zostały wysłane do drukarki. Łączna kwota: {totalAmount:F2} złotych.");
+                await SpeechService.SpeakAsync("Zakańczam transakcję. Drukarka wydrukuje paragon.");
+                
+                // Zakończenie transakcji
+                SendCommandToStream(stream, new string[] { "trend", $"to{(int)(totalAmount * 100)}" });
+                
+                await SpeechService.SpeakAsync("Paragon został wydrukowany pomyślnie ze wszystkimi produktami.");
+                await SpeechService.SpeakAsync("Życzę smacznego i nie dostaj sraczki.");
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"Wystąpił błąd podczas drukowania paragonu. {GetErrorMessage(ex)}";
+                await SpeechService.SpeakAsync(errorMessage);
+                // Próbujemy anulować transakcję w przypadku błędu
+                if (stream != null && client != null)
+                {
+                    try
+                    {
+                        SendCommandToStream(stream, new string[] { "prncancel" });
+                    }
+                    catch { }
+                }
+                await EnsureNoOpenTransaction();
+                throw;
+            }
+            finally
+            {
+                stream?.Dispose();
+                client?.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Wysyła komendę do strumienia sieciowego drukarki.
+        /// </summary>
+        private void SendCommandToStream(System.Net.Sockets.NetworkStream stream, string[] command)
+        {
+            const string STX = "\u0002";
+            const string TAB = "\u0009";
+            const string ETX = "\u0003";
+            
+            // Używamy publicznej metody z PosnetHelper do tworzenia komendy z CRC
+            byte[] data = PosnetHelper.fullCommandEncodedCrced(command);
+            
+            try
+            {
+                // Wysyłanie danych
+                stream.Write(data, 0, data.Length);
+                
+                Encoding win1250 = Encoding.GetEncoding(1250);
+                Console.WriteLine();
+                Console.WriteLine($"Wysłano: {win1250.GetString(data)}");
+                
+                // Odbieranie odpowiedzi
+                byte[] buffer = new byte[1024];
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                string response = win1250.GetString(buffer, 0, bytesRead);
+                
+                Console.WriteLine();
+                Console.WriteLine($"Odpowiedź od serwera: {response}");
+                if (response.Contains("ERR") || response.Contains("?"))
+                {
+                    // Wyciąganie błędu podobnie jak w PosnetHelper
+                    string[] result = response.Split(new string[] { STX, TAB, ETX, LF, " " }, StringSplitOptions.RemoveEmptyEntries);
+                    var code = result.Where(r => r.Contains("?")).FirstOrDefault();
+                    if (!string.IsNullOrEmpty(code))
+                    {
+                        var message = ErrorHelper.GetErrorDescription(code);
+                        Console.WriteLine(message);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Nieznany błąd: {response}");
+                    }
+                    throw new Exception($"Posnet Error {response}");
+                }
+            }
+            catch (System.Net.Sockets.SocketException ex)
+            {
+                Console.WriteLine($"Błąd połączenia sieciowego: {ex.Message}");
+                throw new Exception($"Błąd połączenia z drukarką: {ex.Message}", ex);
+            }
+            catch (System.IO.IOException ex)
+            {
+                Console.WriteLine($"Błąd I/O: {ex.Message}");
+                throw new Exception($"Błąd komunikacji z drukarką: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Upewnia się, że nie ma otwartej transakcji - anuluje ją jeśli istnieje.
+        /// </summary>
+        private async Task EnsureNoOpenTransaction()
+        {
+            try
+            {
+                PosnetHelper.AnulowanieTransakcji();
+                // Nie mówimy głosowo - może nie być transakcji do anulowania
+            }
+            catch
+            {
+                // Ignorujemy błędy - może nie być otwartej transakcji
+            }
+        }
 
         /// <summary>
         /// Wyciąga czytelną wiadomość o błędzie z wyjątku.
