@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Sockets;
 using System.Text;
 
@@ -6,8 +7,14 @@ namespace PosnetLibrary
 {
     public class PosnetHelper
     {
-        static string host = "192.168.50.166";
+        static string host = "192.168.50.47";
         static int port = 6666;
+
+        public static void SetConnectionSettings(string hostAddress, int portNumber)
+        {
+            host = hostAddress;
+            port = portNumber;
+        }
 
 
         const string STX = "\u0002";
@@ -607,6 +614,91 @@ namespace PosnetLibrary
                 {
                     var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "eparagonsheduleget" });
 
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+        public static void VatGet()
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "vatget" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+        public static void VatSet(int vatId, double vatRate, bool active = true)
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "vatset", $"id{vatId}", $"rt{(int)(vatRate * 100)}", $"ac{(active ? 1 : 0)}" });
+
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Programowanie stawek PTU zgodnie z dokumentacją Posnet.
+        /// Wartości specjalne: 100 = stawka zwolniona, 101 = stawka nieaktywna.
+        /// </summary>
+        /// <param name="va">Wartość stawki A w procentach (0-99.99, 100=zwolniona, 101=nieaktywna)</param>
+        /// <param name="vb">Wartość stawki B w procentach</param>
+        /// <param name="vc">Wartość stawki C w procentach</param>
+        /// <param name="vd">Wartość stawki D w procentach</param>
+        /// <param name="ve">Wartość stawki E w procentach</param>
+        /// <param name="vf">Wartość stawki F w procentach</param>
+        /// <param name="vg">Wartość stawki G w procentach</param>
+        /// <param name="date">Opcjonalna data w formacie YYYY-MM-DD;HH:MM</param>
+        public static void VatSetRates(double? va = null, double? vb = null, double? vc = null, double? vd = null, double? ve = null, double? vf = null, double? vg = null, string? date = null)
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var commandParams = new List<string> { "vatset" };
+
+                    if (va.HasValue)
+                        commandParams.Add($"va{va.Value.ToString("0.##", CultureInfo.InvariantCulture)}");
+                    if (vb.HasValue)
+                        commandParams.Add($"vb{vb.Value.ToString("0.##", CultureInfo.InvariantCulture)}");
+                    if (vc.HasValue)
+                        commandParams.Add($"vc{vc.Value.ToString("0.##", CultureInfo.InvariantCulture)}");
+                    if (vd.HasValue)
+                        commandParams.Add($"vd{vd.Value.ToString("0.##", CultureInfo.InvariantCulture)}");
+                    if (ve.HasValue)
+                        commandParams.Add($"ve{ve.Value.ToString("0.##", CultureInfo.InvariantCulture)}");
+                    if (vf.HasValue)
+                        commandParams.Add($"vf{vf.Value.ToString("0.##", CultureInfo.InvariantCulture)}");
+                    if (vg.HasValue)
+                        commandParams.Add($"vg{vg.Value.ToString("0.##", CultureInfo.InvariantCulture)}");
+                    if (!string.IsNullOrEmpty(date))
+                        commandParams.Add($"da{date}");
+
+                    var endLineCommand = PosnetHelper.fullCommandCrced(commandParams.ToArray());
+                    SendByEthernet(endLineCommand, stream);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Wydruk raportu serwisowego zawierającego m.in. listę stawek VAT.
+        /// Raport serwisowy zawiera informacje o stawkach PTU (A-G).
+        /// </summary>
+        public static void PrintVatRatesList()
+        {
+            using (TcpClient client = new TcpClient(host, port))
+            {
+                using (NetworkStream stream = client.GetStream())
+                {
+                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "servicerep" });
                     SendByEthernet(endLineCommand, stream);
                 }
             }

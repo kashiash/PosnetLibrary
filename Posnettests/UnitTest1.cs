@@ -13,8 +13,8 @@ namespace PosnetTests
 
 
 
-        string host = "192.168.50.166";
-        int port = 6666;
+        string host = "192.168.50.47";
+        int port = 6666; //2121;
 
         string[] testParagon = {
             "\u0002trinit\u0009#911D\u0003",
@@ -27,7 +27,7 @@ namespace PosnetTests
         public void Setup()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
+            PosnetHelper.SetConnectionSettings(host, port);
         }
 
         const string STX = "\u0002";
@@ -97,22 +97,25 @@ namespace PosnetTests
 
 
 
-        //[Test]
-        //public void VatGetTest()
-        //{
+        [Test]
+        public void VatGetTest()
+        {
+            PosnetHelper.VatGet();
+        }
 
+        [Test]
+        public void VatSetRatesTest()
+        {
+            // Przyk≈Çad zgodny z dokumentacjƒÖ: ustawienie stawek A=23%, B=8%, C=3%, D=0%, E=0%, F=nieaktywna (101), G=zwolniona (100)
+            PosnetHelper.VatSetRates(va: 23, vb: 8, vc: 3, vd: 0, ve: 0, vf: 101, vg: 100);
+        }
 
-        //    using (TcpClient client = new TcpClient(host, port))
-        //    {
-
-        //        using (NetworkStream stream = client.GetStream())
-        //        {
-        //            var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "vatget" });
-
-        //            SendByEthernet(endLineCommand, stream);
-        //        }
-        //    }
-        //}
+        [Test]
+        public void PrintVatRatesListTest()
+        {
+            // Wydruk raportu serwisowego zawierajƒÖcego listƒô stawek VAT
+            PosnetHelper.PrintVatRatesList();
+        }
         //[Test]
         //public void StatusLicznikowTest()
         //{
@@ -234,7 +237,7 @@ namespace PosnetTests
         public void SetHeaderTest()
         {
 
-            var nazwaFirmy = "Øryj z Hasioka";
+            var nazwaFirmy = "ÔøΩryj z Hasioka";
             var miejscowosc = "Sosnowiec";
             var kod = "41-203";
 
@@ -267,8 +270,8 @@ namespace PosnetTests
 
             //for (int i = 1; i <= 20; i++)
             //{
-            var line2 = new ItemOnFiscalReceipt("Fotelik op≥ata dodatkowa", 100, 1, "1"); receipt.FiscalReceiptItems.Add(line2);
-            var line3 = new ItemOnFiscalReceipt("Telefon satelitarny op≥ata dodatkowa", 255, 5, "2", "dalsze obciπzenie na podstawie bilingu"); receipt.FiscalReceiptItems.Add(line3);
+            var line2 = new ItemOnFiscalReceipt("Fotelik opÔøΩata dodatkowa", 100, 1, "1"); receipt.FiscalReceiptItems.Add(line2);
+            var line3 = new ItemOnFiscalReceipt("Telefon satelitarny opÔøΩata dodatkowa", 255, 5, "2", "dalsze obciÔøΩzenie na podstawie bilingu"); receipt.FiscalReceiptItems.Add(line3);
             var line4 = new ItemOnFiscalReceipt("Dodatkowy kierowca", 300, 2, "2"); receipt.FiscalReceiptItems.Add(line4);
             //  }
 
@@ -297,15 +300,15 @@ namespace PosnetTests
 
             receipt.FiscalReceiptItems = new List<ItemOnFiscalReceipt>();
 
-            var line1 = new ItemOnFiscalReceipt("Piwerko---------•Øåè∆ —£”πøúüÊÒÛ≥-------IBU Pyszne", 20, 5, "0"); receipt.FiscalReceiptItems.Add(line1);
+            var line1 = new ItemOnFiscalReceipt("Piwerko---------ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ—£”πÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ-------IBU Pyszne", 20, 5, "0"); receipt.FiscalReceiptItems.Add(line1);
 
 
 
             //for (int i = 1; i <= 20; i++)
             //{
             var line2 = new ItemOnFiscalReceipt("Orzeszki", 100, 25, "1"); receipt.FiscalReceiptItems.Add(line2);
-            var line3 = new ItemOnFiscalReceipt("Paluszki", 55, 5.5, "2", "Paluszki bardzo s≥one,•Øåè∆ —£”πøúüÊÒÛ≥"); receipt.FiscalReceiptItems.Add(line3);
-            var line4 = new ItemOnFiscalReceipt("Rzodkiewki", 110, 5.5, "2", "Wersja ekologiczna z nalotem pleúniowym"); receipt.FiscalReceiptItems.Add(line4);
+            var line3 = new ItemOnFiscalReceipt("Paluszki", 55, 5.5, "2", "Paluszki bardzo sÔøΩone,ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ—£”πÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ"); receipt.FiscalReceiptItems.Add(line3);
+            var line4 = new ItemOnFiscalReceipt("Rzodkiewki", 110, 5.5, "2", "Wersja ekologiczna z nalotem pleÔøΩniowym"); receipt.FiscalReceiptItems.Add(line4);
             //  }
 
             PosnetHelper.PrintRecipe(receipt);
