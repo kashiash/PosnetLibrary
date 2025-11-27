@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Net.Sockets;
 using System.Text;
 
@@ -71,9 +72,44 @@ namespace PosnetLibrary
                         }
                         SendCommand(stream, new string[] { "trend", $"to{(int)(receipt.GrossAmount * 100)}" });
                     }
+                    catch (SocketException ex)
+                    {
+                        Console.WriteLine($"Błąd połączenia sieciowego podczas drukowania paragonu: {ex.Message}");
+                        try
+                        {
+                            AnulowanieTransakcji();
+                        }
+                        catch
+                        {
+                            // Ignoruj błędy podczas anulowania, jeśli połączenie jest zerwane
+                        }
+                        throw new Exception($"Błąd połączenia z drukarką podczas drukowania paragonu: {ex.Message}", ex);
+                    }
+                    catch (IOException ex)
+                    {
+                        Console.WriteLine($"Błąd I/O podczas drukowania paragonu: {ex.Message}");
+                        try
+                        {
+                            AnulowanieTransakcji();
+                        }
+                        catch
+                        {
+                            // Ignoruj błędy podczas anulowania, jeśli połączenie jest zerwane
+                        }
+                        throw new Exception($"Błąd komunikacji z drukarką podczas drukowania paragonu: {ex.Message}", ex);
+                    }
                     catch (Exception ex)
                     {
-                        AnulowanieTransakcji();
+                        Console.WriteLine($"Błąd podczas drukowania paragonu: {ex.Message}");
+                        try
+                        {
+                            AnulowanieTransakcji();
+                        }
+                        catch
+                        {
+                            // Ignoruj błędy podczas anulowania
+                        }
+                        throw;
                     }
 
                 }
@@ -173,14 +209,27 @@ namespace PosnetLibrary
 
         public static void AnulowanieTransakcji()
         {
-            using (TcpClient client = new TcpClient(host, port))
+            try
             {
-                using (NetworkStream stream = client.GetStream())
+                using (TcpClient client = new TcpClient(host, port))
                 {
-                    var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "prncancel" });
+                    using (NetworkStream stream = client.GetStream())
+                    {
+                        var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "prncancel" });
 
-                    SendByEthernet(endLineCommand, stream);
+                        SendByEthernet(endLineCommand, stream);
+                    }
                 }
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine($"Błąd połączenia sieciowego podczas anulowania transakcji: {ex.Message}");
+                throw new Exception($"Nie można połączyć się z drukarką podczas anulowania transakcji: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd podczas anulowania transakcji: {ex.Message}");
+                throw;
             }
         }
 
@@ -204,62 +253,95 @@ namespace PosnetLibrary
         }
         private static void SendByEthernet(byte[] data, NetworkStream stream)
         {
-
-            // Wysyłanie danych
-            stream.Write(data, 0, data.Length);
-
-            //foreach (byte b in data)
-            //{
-            //    Console.Write($"{b:X2} ");
-            //}
-            Console.WriteLine();
-            Encoding win1250 = Encoding.GetEncoding(1250);
-            Console.WriteLine($"Wysłano: {win1250.GetString(data)}");
-
-            // Odbieranie odpowiedzi
-            byte[] buffer = new byte[1024];
-            int bytesRead = stream.Read(buffer, 0, buffer.Length);
-            string response = win1250.GetString(buffer, 0, bytesRead);
-
-            Console.WriteLine();
-            Console.WriteLine($"Odpowiedź od serwera: {response}");
-            if (response.Contains("ERR") || response.Contains("?"))
+            try
             {
-                ExtractError(response);
-                throw new Exception($"Posnet Error {response}");
-            }
+                // Wysyłanie danych
+                stream.Write(data, 0, data.Length);
 
+                //foreach (byte b in data)
+                //{
+                //    Console.Write($"{b:X2} ");
+                //}
+                Console.WriteLine();
+                Encoding win1250 = Encoding.GetEncoding(1250);
+                Console.WriteLine($"Wysłano: {win1250.GetString(data)}");
+
+                // Odbieranie odpowiedzi
+                byte[] buffer = new byte[1024];
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                string response = win1250.GetString(buffer, 0, bytesRead);
+
+                Console.WriteLine();
+                Console.WriteLine($"Odpowiedź od serwera: {response}");
+                if (response.Contains("ERR") || response.Contains("?"))
+                {
+                    ExtractError(response);
+                    throw new Exception($"Posnet Error {response}");
+                }
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine($"Błąd połączenia sieciowego: {ex.Message}");
+                throw new Exception($"Błąd połączenia z drukarką: {ex.Message}", ex);
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Błąd I/O: {ex.Message}");
+                throw new Exception($"Błąd komunikacji z drukarką: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Nieoczekiwany błąd: {ex.Message}");
+                throw;
+            }
         }
 
 
         private static void SendByEthernet(string dataToSend, NetworkStream stream)
         {
-            // Konwersja danych na tablicę bajtów
-            byte[] data = Encoding.UTF8.GetBytes(dataToSend);
-
-            // Wysyłanie danych
-            stream.Write(data, 0, data.Length);
-
-            //foreach (byte b in data)
-            //{
-            //    Console.Write($"{b:X2} ");
-            //}
-            Console.WriteLine();
-            Console.WriteLine($"Wysłano: {dataToSend}");
-
-            // Odbieranie odpowiedzi
-            byte[] buffer = new byte[1024];
-            int bytesRead = stream.Read(buffer, 0, buffer.Length);
-            string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-
-            Console.WriteLine();
-            Console.WriteLine($"Odpowiedź od serwera: {response}");
-            if (response.Contains("ERR") || response.Contains("?"))
+            try
             {
-                ExtractError(response);
-                throw new Exception($"Posnet Error {response}");
-            }
+                // Konwersja danych na tablicę bajtów
+                byte[] data = Encoding.UTF8.GetBytes(dataToSend);
 
+                // Wysyłanie danych
+                stream.Write(data, 0, data.Length);
+
+                //foreach (byte b in data)
+                //{
+                //    Console.Write($"{b:X2} ");
+                //}
+                Console.WriteLine();
+                Console.WriteLine($"Wysłano: {dataToSend}");
+
+                // Odbieranie odpowiedzi
+                byte[] buffer = new byte[1024];
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+                Console.WriteLine();
+                Console.WriteLine($"Odpowiedź od serwera: {response}");
+                if (response.Contains("ERR") || response.Contains("?"))
+                {
+                    ExtractError(response);
+                    throw new Exception($"Posnet Error {response}");
+                }
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine($"Błąd połączenia sieciowego: {ex.Message}");
+                throw new Exception($"Błąd połączenia z drukarką: {ex.Message}", ex);
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Błąd I/O: {ex.Message}");
+                throw new Exception($"Błąd komunikacji z drukarką: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Nieoczekiwany błąd: {ex.Message}");
+                throw;
+            }
         }
 
 
@@ -267,9 +349,15 @@ namespace PosnetLibrary
         {
             string[] result = response.Split(new string[] { STX, TAB, ETX, LF, " " }, StringSplitOptions.RemoveEmptyEntries);
             var code = result.Where(r => r.Contains("?")).FirstOrDefault();
-            var message = ErrorHelper.GetErrorDescription(code);
-            Console.WriteLine(message);
-
+            if (!string.IsNullOrEmpty(code))
+            {
+                var message = ErrorHelper.GetErrorDescription(code);
+                Console.WriteLine(message);
+            }
+            else
+            {
+                Console.WriteLine($"Nieznany błąd: {response}");
+            }
         }
         public static string fullCommand(string[] command)
         {
