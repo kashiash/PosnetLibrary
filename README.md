@@ -4,9 +4,96 @@
 
 # Obsługa drukarki posnet
 
-To nie jest kopia dokumentacji a jedynie moje notatki jakie robiłem podczas czytanie pdf’a z firmy posnet.
+To nie jest kopia dokumentacji a jedynie moje notatki jakie robiłem podczas czytanie pdf'a z firmy posnet.
 
 Może zawierać błędy literówki itd.
+
+## Konfiguracja drukarki sieciowej
+
+Po podłączeniu drukarki do sieci należy:
+
+1. **Wejść do menu ustawień sieciowych** w drukarce
+2. **Ustawić adres IP na sztywno** - najprawdopodobniej drukarka dostanie adres sieciowy z DHCP, ale dobrze jest ustawić adres statyczny, tak żeby się nie zmieniał na routerze. W przeciwnym razie później będzie ciężko do niej trafić.
+3. **Sprawdzić port drukarki** - aby się dowiedzieć na jakim porcie działa drukarka, trzeba wydrukować raporty niefiskalne. W menu raportów niefiskalnych znajduje się raport sieciowy, który zawiera informacje o porcie.
+
+## Testowanie połączenia z drukarką
+
+Po skonfigurowaniu drukarki sieciowej, aby przetestować połączenie:
+
+### Klasa startowa - StartZabawyZDrukarkaTest
+
+**Zacznij od klasy testowej `StartZabawyZDrukarkaTest`** - zawiera wszystkie podstawowe testy potrzebne do rozpoczęcia pracy z drukarką w odpowiedniej kolejności.
+
+Plik: `Posnettests/StartZabawyZDrukarkaTest.cs`
+
+Klasa zawiera:
+- **`DailyReportTest()`** - pierwszy test połączenia (raport dobowy) - to pierwsze koty za płoty
+- **`SetHeaderTest()`** - ustawienie nagłówka paragonu (nazwa firmy, miejscowość, kod pocztowy)
+- **`SetFooterTest()`** - ustawienie stopki paragonu (dodatkowe informacje na dole paragonu)
+- **`WszystkiePodstawoweTesty()`** - kompleksowy test wykonujący wszystkie kroki w odpowiedniej kolejności
+
+**WAŻNE:** Przed uruchomieniem testów należy ustawić IP i port drukarki w zmiennych `host` i `port` na początku klasy.
+
+### Szczegółowe kroki testowania
+
+1. **Ustawić IP i port drukarki w testach** - w klasie `StartZabawyZDrukarkaTest` (lub `UnitTest1.cs`) w zmiennych `host` i `port`:
+   ```csharp
+   string host = "192.168.50.47";
+   int port = 6666;
+   ```
+
+2. **Wywołać raport dobowy** - uruchomić test `DailyReportTest()`, który wywołuje `PosnetHelper.DailyReport()`. W tym momencie drukarka powinna zareagować i wydrukować raport dobowy.
+
+To pierwsze koty za płoty - podstawowy test połączenia.
+
+### Dodatkowe testy konfiguracji
+
+W pliku `Posnettests/UnitTest1.cs` dostępne są również inne testy pomocne przy konfiguracji i zaawansowanej pracy z drukarką.
+
+## E-paragony - ważne informacje
+
+### Wymagania dotyczące testowania e-paragonów
+
+**WAŻNE:** Aby móc wysyłać testowo e-paragony, drukarka musi być **zafiskalizowana**. 
+
+Niestety nie ma innej możliwości - trzeba się uśmiechnąć do producenta i wyburzyć drukarkę, która jest zafiskalizowana i pozwala wysyłać e-paragony. Bez zafiskalizowanej drukarki testowanie funkcjonalności e-paragonów nie jest możliwe.
+
+### Wysyłanie e-paragonu mailem do klienta
+
+Jeśli chodzi o to, żeby klient dostał e-paragon mailem, to według obecnej wiedzy **trzeba to obrabiać samemu**. 
+
+**Rekomendowane rozwiązanie:**
+- Najlepiej wydrukować paragon do **PDF**
+- PDF załączyć do maila i wysłać do klienta
+
+**Uwaga:** Obrazek paragonu nie powstaje automatycznie - trzeba to samemu ogarnąć. Przykład z aplikacji Lidla - paragon jest bardzo podobny do drukarkowego, ale to nie jest jego kopia, tylko samodzielnie przygotowany obrazek/PDF.
+
+### Dostępne metody e-paragonów w bibliotece
+
+W bibliotece dostępne są następujące metody do pracy z e-paragonami (znajdują się w klasie `PosnetHelper`):
+
+- `EparagonGet()` - pobranie danych e-paragonu
+- `EparagonGetStatus()` - pobranie statusu e-paragonu
+- `EparagonSetStatus(int status)` - ustawienie statusu e-paragonu
+- `EparagonSetSchedule(...)` - ustawienie harmonogramu wysyłki
+- `EparagonGetSchedule()` - pobranie harmonogramu wysyłki
+- `EparagonSetServer(string url)` - ustawienie serwera e-paragonów
+- `EparagonSetServer(int recNo, string url)` - ustawienie serwera e-paragonów (z numerem rekordu)
+- `EparagonTestServerConnection(string url)` - test połączenia z serwerem
+- `EparagonSetNextIDZ(string idz)` - ustawienie następnego IDZ
+- `EparagonNewDocumentByIDZ(string idz)` - utworzenie nowego dokumentu e-paragonu przez IDZ
+
+Przykładowe testy znajdują się w pliku `Posnettests/UnitTest1.cs`:
+- `EparagonReportTest()`
+- `EparagongetStatusTest()`
+- `EparagonSetStatusTest()`
+- `EparagonSetScheduleTest()`
+- `EparagonGetScheduleTest()`
+- `EparagonSetTest()`
+- `EparagonSetServerDodTest()`
+- `EparagonServerConnectionTest()`
+- `TestSetIDZ()`
+- `TestCreateEdocument()`
 
 ## Wystawianie faktury VAT na drukarce posnet
 
