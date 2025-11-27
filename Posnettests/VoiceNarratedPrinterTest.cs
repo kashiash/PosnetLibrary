@@ -252,6 +252,38 @@ namespace PosnetTests
                 }
                 
                 await SpeechService.SpeakAsync($"Wszystkie {produkty.Length} pozycji zostały wysłane do drukarki. Łączna kwota: {totalAmount:F2} złotych.");
+                
+                // Wycofujemy chipsy, colę i szkloki na końcu
+                var pozycjeDoStornowania = new[] { "Chipsy", "Cola", "Szkloki" };
+                await SpeechService.SpeakAsync("Wycofuję chipsy, colę i szkloki.");
+                
+                foreach (var nazwaDoStornowania in pozycjeDoStornowania)
+                {
+                    var pozycja = dodanePozycje.FirstOrDefault(p => p.nazwa == nazwaDoStornowania);
+                    if (pozycja.nazwa != null)
+                    {
+                        double pozycjaKwota = pozycja.cena * pozycja.ilosc;
+                        totalAmount -= pozycjaKwota; // Odejmujemy od całkowitej kwoty
+                        
+                        string formattedquantity = pozycja.ilosc.ToString("0.##", polishCulture);
+                        double price = (pozycjaKwota * 100.0 / pozycja.ilosc);
+                        
+                        await SpeechService.SpeakAsync($"Wycofuję {pozycja.nazwa.ToLower()}.");
+                        
+                        // Wysyłamy storno - tę samą pozycję z st=1
+                        SendCommandToStream(stream, new string[] { "trline",
+                            $"na{pozycja.nazwa.Truncate(80)}",
+                            $"vt{pozycja.vat}",
+                            $"pr{(int)price}",
+                            $"il{formattedquantity}",
+                            $"wa{(int)(pozycjaKwota * 100)}",
+                            $"op{pozycja.opis.Truncate(50)}",
+                            "st1"  // st=True - stornowanie (anulowanie pozycji)
+                        });
+                    }
+                }
+                
+                await SpeechService.SpeakAsync($"Po wycofaniu pozycji, łączna kwota wynosi: {totalAmount:F2} złotych.");
                 await SpeechService.SpeakAsync("Zakańczam transakcję. Drukarka wydrukuje paragon.");
                 
                 // Zakończenie transakcji
