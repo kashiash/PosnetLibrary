@@ -233,6 +233,57 @@ namespace PosnetLibrary
             }
         }
 
+        /// <summary>
+        /// Zwrot towaru - operacja niefiskalna rejestrująca zwrot towaru za określoną kwotę.
+        /// Zgodnie z dokumentacją POSNET: polecenie stocash.
+        /// </summary>
+        /// <param name="amount">Kwota zwrotu towaru w złotych (np. 4.56 dla 4,56 zł). Maksymalna wartość: 4999999999.99</param>
+        /// <exception cref="ArgumentException">Gdy kwota jest ujemna lub przekracza maksymalną wartość</exception>
+        /// <exception cref="Exception">Gdy wystąpi błąd komunikacji z drukarką</exception>
+        public static void ReturnGoods(double amount)
+        {
+            if (amount < 0)
+            {
+                throw new ArgumentException("Kwota zwrotu nie może być ujemna", nameof(amount));
+            }
+
+            if (amount > 4999999999.99)
+            {
+                throw new ArgumentException("Kwota zwrotu przekracza maksymalną dozwoloną wartość (4999999999.99)", nameof(amount));
+            }
+
+            try
+            {
+                using (TcpClient client = new TcpClient(host, port))
+                {
+                    using (NetworkStream stream = client.GetStream())
+                    {
+                        // Konwersja kwoty do formatu POSNET (dwie ostatnie cyfry to część ułamkowa)
+                        // Przykład: 4.56 -> 456 (bez separatora części ułamkowej)
+                        int amountInCents = (int)Math.Round(amount * 100);
+                        var endLineCommand = PosnetHelper.fullCommandCrced(new string[] { "stocash", $"kw{amountInCents}" });
+
+                        SendByEthernet(endLineCommand, stream);
+                    }
+                }
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine($"Błąd połączenia sieciowego podczas zwrotu towaru: {ex.Message}");
+                throw new Exception($"Nie można połączyć się z drukarką podczas zwrotu towaru: {ex.Message}", ex);
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Błąd I/O podczas zwrotu towaru: {ex.Message}");
+                throw new Exception($"Błąd komunikacji z drukarką podczas zwrotu towaru: {ex.Message}", ex);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd podczas zwrotu towaru: {ex.Message}");
+                throw;
+            }
+        }
+
         public static void SetBuyerNIP(string nip)
         {
             using (TcpClient client = new TcpClient(host, port))

@@ -8,6 +8,10 @@ To nie jest kopia dokumentacji a jedynie moje notatki jakie robiłem podczas czy
 
 Może zawierać błędy literówki itd.
 
+## Dokumentacja
+
+- **[Wykaz kodów błędów drukarki](POSNET_KODY_BLEDOW.md)** - kompletny wykaz wszystkich kodów błędów zwracanych przez drukarkę Posnet
+
 ## Konfiguracja drukarki sieciowej
 
 Po podłączeniu drukarki do sieci należy:
@@ -56,7 +60,7 @@ W pliku `Posnettests/UnitTest1.cs` dostępne są również inne testy pomocne pr
 
 **WAŻNE:** Aby móc wysyłać testowo e-paragony, drukarka musi być **zafiskalizowana**. 
 
-Niestety nie ma innej możliwości - trzeba się uśmiechnąć do producenta i wyburzyć drukarkę, która jest zafiskalizowana i pozwala wysyłać e-paragony. Bez zafiskalizowanej drukarki testowanie funkcjonalności e-paragonów nie jest możliwe.
+Niestety nie ma innej możliwości - trzeba się uśmiechnąć do producenta i wypozyczyc drukarkę, która jest zafiskalizowana i pozwala wysyłać e-paragony. Bez zafiskalizowanej drukarki testowanie funkcjonalności e-paragonów nie jest możliwe.
 
 ### Wysyłanie e-paragonu mailem do klienta
 
@@ -94,6 +98,111 @@ Przykładowe testy znajdują się w pliku `Posnettests/UnitTest1.cs`:
 - `EparagonServerConnectionTest()`
 - `TestSetIDZ()`
 - `TestCreateEdocument()`
+
+## Wyliczanie wartości na paragonie - zaokrąglenia
+
+Aby uniknąć problemów z zaokrągleniami podczas wyliczania wartości na paragonie, drukarka Posnet stosuje specjalne algorytmy obliczeniowe. Poniżej opisane są kluczowe zasady i metody.
+
+### Precyzja obliczeń
+
+**Wszystkie obliczenia są prowadzone z precyzją 10-cyfrową** podczas całej transakcji. Wystąpienie nadmiaru obliczeniowego spowoduje zgłoszenie błędu (kod błędu 19 - błąd wartości CENA).
+
+### Zaokrąglanie wartości końcowych
+
+Po zakończeniu transakcji i zastosowaniu rabatów/narzutów, wartości są zaokrąglane do **0,01 zł** (drugiej cyfry po przecinku):
+
+- Kwoty BRUTTO[A]...BRUTTO[G] po rabacie/narzucie są zaokrąglane do 0,01 zł
+- Wartości podatku PTU[A]...PTU[G] są również zaokrąglane do drugiej cyfry po przecinku
+- Wartości NETTO[A]...NETTO[G] obliczane są jako różnica: NETTO[PTU] = BRUTTO[PTU] - PTU[PTU]
+
+### Rozliczanie groszy - algorytm dystrybucji nadmiarowych groszy
+
+W przypadku gdy suma poszczególnych totalizerów wynikająca z obliczeń nie równa się wysokości paragonu po udzieleniu rabatu/narzutu kwotowego, lub wysokości rabatu/narzutu nie da się rozdzielić poszczególnym totalizerom przy wykorzystaniu zwykłej arytmetyki, stosowany jest następujący algorytm dystrybucji nadmiarowych groszy:
+
+#### Rabat kwotowy
+
+**Parametry:**
+- `r`: kwota rabatu
+- `XvA...XvG`: kwota sprzedaży dla poszczególnych stawek VAT przed rabatem
+- `Xa = Suma(XvA...XvG)`: podsuma przed rabatem
+- `XaPo = Xa – r`: podsuma po rabacie
+
+**Algorytm:**
+
+1. Inicjujemy roboczy parametr `Z = 0`
+
+2. Dla każdej i-tej stawki VAT (gdzie i = A..G) wyliczamy kwotę sprzedaży po rabacie, **zaokrąglając w dół do pełnych groszy**:
+   ```
+   XviPo = (Xvi * XaPo) / Xa
+   ```
+
+3. Do `Z` dodajemy resztę z powyższego dzielenia:
+   ```
+   Z = Z + ((Xvi * XaPo) mod Xa)
+   ```
+
+4. Jeśli w danej iteracji wartość `Z` osiągnęła lub przekroczyła wartość `Xa`, wówczas:
+   - Obliczoną w tej iteracji kwotę sprzedaży `XviPo` zwiększamy o 1 grosz: `XviPo = XviPo + 1`
+   - Wartość `Z` zmniejszamy o `Xa`: `Z = Z - Xa`
+
+#### Narzut kwotowy
+
+Kwoty sprzedaży przy narzucie kwotowym wyliczane są analogicznie jak przy rabacie kwotowym, z tą różnicą, że wartość narzutu jest dodawana do kwoty podsumy:
+
+**Parametry:**
+- `n`: kwota narzutu
+- `XvA...XvG`: kwota sprzedaży dla poszczególnych stawek VAT przed narzutem
+- `Xa = Suma(XvA...XvG)`: podsuma przed narzutem
+- `XaPo = Xa + n`: podsuma po narzucie
+
+**Algorytm:** identyczny jak dla rabatu kwotowego, z tą różnicą, że `XaPo = Xa + n` zamiast `XaPo = Xa - r`.
+
+#### Rabat procentowy
+
+W drukarce rabat procentowy obliczany jest dwiema metodami w zależności od konfiguracji urządzenia:
+
+**Metoda 1:**
+```
+wartość' = ((100 - R) * wartość) / 100
+Rabat = wartość - wartość'  // kwota rabatu
+```
+
+**Metoda 2:**
+```
+Rabat = (wartość * R) / 100  // kwota rabatu
+wartość' = wartość - Rabat
+```
+
+Gdzie:
+- `wartość` - wartość przed rabatem
+- `wartość'` - wartość po rabacie
+- `R` - wartość procentowa rabatu
+
+#### Narzut procentowy
+
+```
+Narzutx' = (Xvatx * N) / 100
+Xvatx' = Xvatx + Narzutx'
+```
+
+### Ważne uwagi
+
+1. **Kontrola zgodności wartości**: Po zakończeniu transakcji wartość `P_TOTAL` obliczona przez aplikację musi być **identyczna** z wartością `TOTAL` otrzymaną z systemu w sekwencji kończącej paragon. Obie kwoty muszą być jednakowe, aby poprawnie zakończyć transakcję.
+
+2. **Korekcja sum BRUTTO**: Jeżeli w sekwencji kończącej paragon przesłano niezerową wartość rabatu i niezerowy parametr `Px` (rodzaj rabatu/narzutu), następuje korekcja sum `BRUTTO[A]..BRUTTO[G]` według odpowiednich wzorów, a następnie obliczane są wartości podatku PTU i netto.
+
+3. **Zaokrąglenia w raportach**: W raportach okresowych kontrola obliczania kwot należnego podatku w oparciu o sumy `RO_NETTO[A]..RO_NETTO[G]` może wykazać nieznaczny błąd obliczeniowy wynikający z zaokrągleń kwot cząstkowych.
+
+### Przykład praktyczny
+
+Przy rabacie kwotowym, jeśli mamy:
+- `XvA = 1000` (10,00 zł)
+- `XvB = 500` (5,00 zł)
+- `Xa = 1500` (15,00 zł)
+- `r = 50` (0,50 zł rabatu)
+- `XaPo = 1450` (14,50 zł)
+
+Algorytm rozdzieli rabat proporcjonalnie między stawki A i B, a nadmiarowe grosze zostaną rozdzielone zgodnie z algorytmem dystrybucji.
 
 ## Wystawianie faktury VAT na drukarce posnet
 
@@ -220,6 +329,53 @@ W tym przykładzie zakończono transakcję, podając wartość fiskalną i warto
 **Parametry wejściowe:** brak
 
 **Odpowiedź urządzenia:** standardowa
+
+### [stocash] Zwrot towaru
+
+**Identyfikator polecenia:** `stocash`
+
+**Parametry wejściowe:**
+
+| Nazwa | Opis                                         | Wymagany | Typ  | Uwagi                                                        |
+| ----- | -------------------------------------------- | -------- | ---- | ------------------------------------------------------------ |
+| kw    | Kwota, za którą towar został nabyty         | TAK      | Num. | Do 499999999999. Dwie ostatnie cyfry stanowią część ułamkową |
+
+**Odpowiedź urządzenia:** standardowa
+
+**Uwagi:**
+
+1. Operacja niefiskalna rejestrująca zwrot towaru za określoną kwotę.
+2. Dostępność w trybie tylko do odczytu: NIE.
+
+**Przykład:**
+
+```plaintext
+[STX]stocash[TAB]kw456[TAB]#CRC16[ETX]
+```
+
+Wydruk:
+
+```
+| POSNET THERMAL XL2 ONLINE |
+| POSNET POLSKA S.A. |
+| ul. Municypalna 33 |
+| 02-281 Warszawa |
+| www.posnet.com |
+|NIP 5222628262 nr:156|
+| N I E F I S K A L N Y |
+|Zwrot towaru 4,56|
+| N I E F I S K A L N Y |
+|#001 KIEROWNIK 2018-09-10 13:15|
+|1D415FF65644899AB140AD5DD26224CC92CFF091|
+| ZBF 1801007587 |
+```
+
+**Użycie w bibliotece:**
+
+```csharp
+// Zwrot towaru za kwotę 4,56 zł
+PosnetHelper.ReturnGoods(4.56);
+```
 
 **Uwagi:**
 
