@@ -12,21 +12,21 @@ Ten dokument zawiera wykaz wszystkich kodów błędów drukarki Posnet zgodnie z
 
 Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
-| 1 | `PROTO_ERR_CMD_UNKNOWN` | Nierozpoznana komenda |
-| 2 | `PROTO_ERR_CMD_MANDATORY_FIELDS` | Brak obowiązkowego pola |
-| 3 | `PROTO_ERR_DATA_CONVERSION` | Błąd konwersji pola (np.: przesłana została wartość z przecinkiem w polu którego wartość przesyła się w częściach setnych np.: 12,34 zamiast 1234, lub przekroczony zakres danych) |
-| 4 | `PROTO_ERR_TOKEN_INVALID` | Błędny token |
-| 5 | `PROTO_ERR_CRC_INVALID` | Zła suma kontrolna |
-| 6 | `PROTO_ERR_FLD_INVALID` | Błąd budowy ramki, brak mnemonika parametru |
-| 7-9 | Zarezerwowane | Zarezerwowane |
-| 10 | `PROTO_ERR_DATA_LENGTH` | Niewłaściwa długość pola danych |
-| 11 | `PROTO_ERR_INPUT_BUFFER_OVERRUN` | Zapełniony bufor odbiorczy |
-| 12 | `PROTO_ERR_CMD_IMMEDIATE_FORBIDDEN` | Nie można wykonać rozkazu w trybie natychmiastowym |
-| 13 | `PROTO_ERR_TOKEN_NOT_FOUND` | Nie znaleziono rozkazu o podanym tokenie |
-| 14 | `PROTO_ERR_INPUT_QUEUE_FULL` | Zapełniona kolejka wejściowa |
-| 15 | `PROTO_ERR_SYNTAX` | Błąd budowy ramki, brak sumy kontrolnej |
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
+| 1 | `PROTO_ERR_CMD_UNKNOWN` | Nierozpoznana komenda | |
+| 2 | `PROTO_ERR_CMD_MANDATORY_FIELDS` | Brak obowiązkowego pola | |
+| 3 | `PROTO_ERR_DATA_CONVERSION` | Błąd konwersji pola (np.: przesłana została wartość z przecinkiem w polu którego wartość przesyła się w częściach setnych np.: 12,34 zamiast 1234, lub przekroczony zakres danych) | |
+| 4 | `PROTO_ERR_TOKEN_INVALID` | Błędny token | |
+| 5 | `PROTO_ERR_CRC_INVALID` | Zła suma kontrolna | |
+| 6 | `PROTO_ERR_FLD_INVALID` | Błąd budowy ramki, brak mnemonika parametru | |
+| 7-9 | Zarezerwowane | Zarezerwowane | |
+| 10 | `PROTO_ERR_DATA_LENGTH` | Niewłaściwa długość pola danych | |
+| 11 | `PROTO_ERR_INPUT_BUFFER_OVERRUN` | Zapełniony bufor odbiorczy | |
+| 12 | `PROTO_ERR_CMD_IMMEDIATE_FORBIDDEN` | Nie można wykonać rozkazu w trybie natychmiastowym | |
+| 13 | `PROTO_ERR_TOKEN_NOT_FOUND` | Nie znaleziono rozkazu o podanym tokenie | Gdy rozkazu nie uda się odnaleźć (np. przy użyciu tokenu w odpowiedzi) |
+| 14 | `PROTO_ERR_INPUT_QUEUE_FULL` | Zapełniona kolejka wejściowa | |
+| 15 | `PROTO_ERR_SYNTAX` | Błąd budowy ramki, brak sumy kontrolnej | |
 
 ---
 
@@ -34,10 +34,10 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy ogólne
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
-| 30 | `ERR_CANCEL` | Błąd nietypowy - rezygnacja, przerwanie funkcji |
-| 40 | `ERR_CMD_BLOCKED_FOR_INTERFACE` | Komenda niedozwolona dla danego interfejsu |
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
+| 30 | `ERR_CANCEL` | Błąd nietypowy - rezygnacja, przerwanie funkcji | |
+| 40 | `ERR_CMD_BLOCKED_FOR_INTERFACE` | Komenda niedozwolona dla danego interfejsu | |
 | 41 | `ERR_CMD_TRY_LATER` | Zasoby zajęte przez inny interfejs |
 | 50 | `ERR_UNKN` | Błąd wykonywania operacji przez kasę |
 | 51 | `ERR_ASSERT_FM` | Błąd wykonywania operacji przez kasę |
@@ -53,7 +53,7 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 | 365 | `ERR_WRONG_AUTHORIZATION` | Błędne hasło w sensie niezgodności z tym z bazy |
 | 382 | `ERR_RD_ZERO` | Próba wykonania raportu zerowego |
 | 383 | `ERR_RD_NOT_PRINTED` | Brak raportu dobowego |
-| 384 | `ERR_FM_NO_REC` | Brak rekordu w pamięci |
+| 384 | `ERR_FM_NO_REC` | Brak rekordu w pamięci | W przypadku gdy szukany rekord nie zostanie odnaleziony (polecenie fmrectypeget) |
 | 387 | `ERR_SL_FM_LOCKED` | Sprzedaż zablokowana. Brak miejsca w pamięci |
 | 388 | `ERR_FM_LOCKED` | Operacja zablokowana. Brak miejsca w pamięci |
 | 400 | `ERR_WRONG_VALUE` | Błędna wartość |
@@ -61,8 +61,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy zegara (RTC)
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 460 | `ERR_CLOCK_RTC_FSK` | Błąd zegara w trybie fiskalnym |
 | 461 | `ERR_CLOCK_RTC_NFSK` | Błąd zegara w trybie niefiskalnym |
 | 462 | `ERR_CLOCK_RTC_SYNC` | Błąd synchronizacji zegara z serwerem |
@@ -71,9 +71,9 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy autoryzacji
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
-| 480 | `ERR_AUTH_AUTHORIZED` | Drukarka już autoryzowana, bezterminowo |
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
+| 480 | `ERR_AUTH_AUTHORIZED` | Drukarka już autoryzowana, bezterminowo | Wysłanie rozkazu do drukarki autoryzowanej bezterminowo powoduje odesłanie błędu (polecenie authstateget) |
 | 481 | `ERR_AUTH_NOT_STARTED` | Nie rozpoczęto jeszcze autoryzacji |
 | 482 | `ERR_AUTH_WAS_ADDED` | Kod już wprowadzony |
 | 483 | `ERR_AUTH_DAY_CNT` | Próba wprowadzenia błędnych wartości |
@@ -85,8 +85,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy statystyk i kasy
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 499 | `ERR_ACTIVE_PROTO_THERMAL` | Aktywny protokół Thermal. Proszę zmienić protokół |
 | 500 | `ERR_STAT_MIN_OVF` | Przepełnienie statystyki minimalnej |
 | 501 | `ERR_STAT_MAX_OVF` | Przepełnienie statystyki maksymalnej |
@@ -95,8 +95,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy konfiguracji sieci i komunikacji
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 700 | `ERR_INVALID_IP_ADDR` | Błędny adres IP |
 | 701 | `ERR_INVALID_TONE_NUMBER` | Błąd numeru tonu |
 | 702 | `ERR_ILLEGAL_DRAWER_IMPULSE_LEN` | Błąd długości impulsu szuflady |
@@ -140,8 +140,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy testów i bazy danych
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 820 | `ERR_TEST` | Negatywny wynik testu |
 | 821 | `ERR_TEST_NO_CONF` | Brak testowanej opcji w konfiguracji |
 | 857 | `ERR_DF_DB_NO_MEM` | Brak pamięci na inicjalizację bazy drukarkowej |
@@ -154,8 +154,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy pamięci fiskalnej (FM)
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 1000 | `ERR_FATAL_FM` | Błąd fatalny pamięci fiskalnej |
 | 1001 | `ERR_FM_NCONN` | Wypięta pamięć fiskalna |
 | 1002 | `ERR_FM_WRITE` | Błąd zapisu |
@@ -212,8 +212,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy biletów (TM)
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 1100 | `ERR_TM_READ_GROUP` | Błąd odczytu grupy biletowej |
 | 1101 | `ERR_TM_WRITE_GROUP` | Błąd zapisu grupy biletowej |
 | 1102 | `ERR_TM_READ_CATEGORY` | Błąd odczytu kategorii biletowej |
@@ -225,16 +225,16 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy trybu pracy i urządzenia
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 1200 | `ERR_APP_MODE_WRONG` | Niewłaściwy tryb pracy |
 | 1210 | `ERR_FM_DEVICE_ID` | Pamięć fiskalna niezgodna z typem urządzenia |
 | 1211 | `ERR_FM_DEVICE_ID_READ` | Błąd odczytu identyfikatora typu urządzenia |
 
 ### Błędy transakcji
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 1950 | `ERR_TR_TOT_OVR` | Przekroczony zakres totalizerów paragonu |
 | 1951 | `ERR_TR_PF_OVR` | Wpłata formą płatności przekracza max. wpłatę |
 | 1952 | `ERR_TR_PF_SUM_OVR` | Suma form płatności przekracza max. wpłatę |
@@ -270,7 +270,7 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 | 2007 | `ERR_TR_FLD_QUANT` | Błąd pola ilość (ilość <= 0) |
 | 2008 | `ERR_TR_FLD_TOTAL` | Błąd kwoty total |
 | 2009 | `ERR_TR_FLD_TOTAL_ZERO` | Błąd kwoty total, równa zero |
-| 2010 | `ERR_TOT_OVR` | Przekroczony zakres totalizerów dobowych |
+| 2010 | `ERR_TOT_OVR` | Przekroczony zakres totalizerów dobowych | Jeżeli w wyniku wykonania sekwencji kończącej paragon wystąpił błąd - przepełnienie totalizerów, czyli obrót dzienny w co najmniej jednej z grup podatkowych przekracza zakres (499 999 999,99) |
 | 2019 | `ERR_RTC_CERT_VALIDITY` | Data wykracza poza zakres ważności certyfikatów |
 | 2020 | `ERR_RTC_DAY_CHANGED` | Zmiana daty niedozwolona |
 | 2022 | `ERR_RTC_DIFF` | Zbyt duża różnica dat |
@@ -326,8 +326,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy bazy drukarkowej
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 2101 | `ERR_DF_DB_OVR` | Zapełnienie bazy |
 | 2102 | `ERR_DF_DB_VAT_INACTIVE` | Stawka nieaktywna |
 | 2103 | `ERR_DF_DB_VAT_INVALID` | Nieprawidłowa stawka VAT |
@@ -339,8 +339,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy terminala płatniczego
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 2207 | `ERR_TERMINAL_IP_PORT` | Niedozwolony port TCP |
 | 2211 | `ERR_TERMINAL_BREAK_COMMUNICATION` | Przerwano komunikację z terminalem! |
 | 2282 | `ERR_TERMINAL_RCV_PARAM` | Niepoprawne dane z terminala |
@@ -350,8 +350,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy formatów raportów
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 2501 | `ERR_FORM_ID` | Błędny identyfikator raportu |
 | 2502 | `ERR_FORM_LINE_NO` | Błędny identyfikator linii raportu |
 | 2503 | `ERR_FORM_HDR_NO` | Błędny identyfikator nagłówka raportu |
@@ -371,15 +371,15 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy rabatów i narzutów
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 2600 | `ERR_DISCNT_TYPE` | Błędny typ rabatu/narzutu |
 | 2601 | `ERR_TR_DISCNT_VALUE` | Wartość rabatu/narzutu spoza zakresu |
 
 ### Błędy VAT i dodatkowe
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 2701 | `ERR_VAT_ID` | Błąd identyfikatora stawki podatkowej |
 | 2702 | `ERR_FTRLN_ID` | Błędny identyfikator dodatkowej stopki |
 | 2703 | `ERR_FTRLN_CNT` | Przekroczona liczba dodatkowych stopek |
@@ -392,8 +392,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy weryfikacji
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 2801 | `ERR_DISCNT_VERIFY` | Błąd weryfikacji wartości rabatu/narzutu |
 | 2802 | `ERR_LNTOT_VERIFY` | Błąd weryfikacji wartości linii sprzedaży |
 | 2803 | `ERR_PACKTOT_VERIFY` | Błąd weryfikacji wartości opakowania |
@@ -407,16 +407,16 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy stornowania
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 2851 | `ERR_STORNO_QNT` | Błąd stornowania, błędna ilość |
 | 2852 | `ERR_STORNO_AMT` | Błąd stornowania, błędna wartość |
 | 2853 | `ERR_STORNO_PACK_NOT_FOUND` | Błąd stornowania, nie znaleziono opakowania |
 
 ### Błędy pamięci chronionej (EC)
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 2900 | `ERR_EC_NOT_ENOUGH_SPACE` | Stan pamięci chronionej nie pozwala na wydrukowanie tego dokumentu |
 | 2901 | `ERR_EC_EDM_NOT_READY` | Nośnik niegotowy, operacja na nośniku trwa |
 | 2902 | `ERR_EC_EDM_NOT_VERIFIED` | Nośnik nie został poprawnie zweryfikowany. |
@@ -433,8 +433,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy walut
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 3051 | `ERR_CURRENCY_ALREADY_CHANGED` | Nie można zmienić dwa razy waluty ewidencyjnej po RD |
 | 3052 | `ERR_CURRENCY_SAME` | Próba ustawienia już ustawionej waluty |
 | 3053 | `ERR_CURRENCY_INVALID_NAME` | Błędna nazwa waluty |
@@ -447,8 +447,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy fiskalizacji
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 3098 | `ERR_FISC_OWNERSHIP_TYPE` | Błąd parametru własności kasy |
 | 3099 | `ERR_FISC_USE_TYPE` | Błąd parametru użytkowania kasy |
 | 3100 | `ERR_FISC_AUTH_MISSING` | Brak parametru autoryzacji fiskalizacji |
@@ -456,8 +456,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy kodów 2D
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 3200 | `ERR_CODE2D_NOTHING_TO_PRINT` | Próba wydruku pustego kodu |
 | 3201 | `ERR_CODE2D_OUT_OF_PAPER` | Kod przekracza obszar papieru lub jest zbyt duży |
 | 3202 | `ERR_CODE2D_SCALE` | Nieprawidłowa wartość skali wydruku |
@@ -474,8 +474,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy grafik
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 3250 | `ERR_IMG_SLOT_NO_OVERRANGE` | Numer grafiki poza zakresem |
 | 3251 | `ERR_IMG_SLOT_EMPTY` | Brak grafiki w slocie |
 | 3252 | `ERR_IMG_READ_ONLY` | Grafika tylko do odczytu |
@@ -498,8 +498,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy trybu pracy aplikacji
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 3280 | `ERR_APP_MODE_IS_SAME` | Tryb pracy już zaprogramowany |
 | 3281 | `ERR_APP_MODE_NOT_EXIST` | Tryb pracy poza zakresem |
 | 3282 | `ERR_APP_MODE_WRITE` | Błąd zapisu trybu pracy |
@@ -507,8 +507,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy sieci (WiFi, Bluetooth, COM)
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 3432 | `ERR_CONN_NOW` | Brak aktywnego połączenia z siecią |
 | 3440 | `ERR_WIFI_MODULE` | Błąd modułu WiFi |
 | 3441 | `ERR_WIFI_NO_NETWORK` | Błąd połączenia z siecią WiFi |
@@ -532,8 +532,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy pamięci masowej
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 3500 | `ERR_MASS_STORAGE_FILE_OPEN` | Błąd otwarcia pliku |
 | 3501 | `ERR_MASS_STORAGE_READ` | Błąd odczytu nośnika |
 | 3502 | `ERR_MASS_STORAGE_WRITE` | Błąd zapisu na nośnik |
@@ -543,8 +543,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy aktualizacji oprogramowania
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 3700 | `ERR_FIRMWARE_UPDATE_DOWNLOAD_PROBLEM` | Błąd pobierania aktualizacji |
 | 3701 | `ERR_FIRMWARE_UPDATE_FILE_OPEN` | Błąd otwarcia pliku aktualizacji |
 | 3702 | `ERR_FIRMWARE_UPDATE_FILE_READ` | Błąd odczytu z pliku aktualizacji |
@@ -563,8 +563,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy certyfikatów
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 3720 | `ERR_CERTIFICATE_FILE_CREATE` | Błąd utworzenia pliku z certyfikatem |
 | 3721 | `ERR_CERTIFICATE_FILE_COPY` | Błąd kopiowania certyfikatu |
 | 3722 | `ERR_CERTIFICATE_DELETE` | Błąd kasowania certyfikatu |
@@ -589,16 +589,16 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy kasy terminala
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 3800 | `ERR_KASOTERMINAL_BEGIN_PRINT` | Błąd utworzenia wydruku |
 | 3802 | `ERR_KASOTERMINAL_END_PRINT` | Błąd zakończenia wydruku |
 | 3804 | `ERR_KASOTERMINAL_PRINTOUT_IN_PROGRESS` | Trwa wydruk |
 
 ### Błędy repozytorium i fiskalizacji
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 3901 | `ERR_REPOSITORY_FILE_READ` | Błąd odczytu z pliku |
 | 3902 | `ERR_REPOSITORY_FILE_CREATE` | Błąd utworzenia pliku |
 | 3903 | `ERR_REPOSITORY_BUSY` | Operacja w toku. Spróbuj ponownie |
@@ -633,16 +633,16 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy dokumentów i zdarzeń
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 4000 | `ERR_PROTMEM_DOC_NOT_FOUND` | Nie znaleziono dokumentu |
 | 4100 | `ERR_NO_EVENTS_IN_RANGE` | Brak zdarzeń w podanym zakresie |
 | 4105 | `ERR_EVENTS_INVALID_TYPE` | Błędny typ zdarzenia |
 
 ### Błędy danych podatnika
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 4201 | `ERR_COMPANY_NAME_MISSING_OR_WRONG` | Brak lub błędna nazwa firmy w danych podatnika |
 | 4202 | `ERR_POSTAL_CODE_MISSING_OR_WRONG` | Brak lub błędny kod pocztowy w danych podatnika |
 | 4203 | `ERR_CITY_MISSING_OR_WRONG` | Brak lub błędna nazwa miasta w danych podatnika |
@@ -655,8 +655,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy e-paragonów (eDokument)
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 4250 | `ERR_EPARAGON_QUEUE_FULL` | Kolejka danych do eDokumentu pełna |
 | 4251 | `ERR_EPARAGON_SEND_DATA` | Błąd wysyłania danych |
 | 4252 | `ERR_EPARAGON_FILE_OPEN` | Błąd otwarcia pliku |
@@ -678,8 +678,8 @@ Błędy związane z formatem i strukturą ramki protokołu komunikacyjnego.
 
 ### Błędy duty free
 
-| Kod | Mnemonik | Opis |
-|-----|----------|------|
+| Kod | Mnemonik | Opis | Sytuacja wystąpienia |
+|-----|----------|------|----------------------|
 | 4900 | `ERR_DUTY_FREE_DESTINATION_PORT_MISSING` | Brak identyfikatora portu docelowego |
 | 4901 | `ERR_DUTY_FREE_DESTINATION_ALREADY_PRESENT` | Identyfikator portu docelowego już istnieje |
 | 4902 | `ERR_DUTY_FREE_TOO_MANY_MIDWAY_PORTS` | Zdefiniowano nadmiarową liczbę portów przesiadkowych |
