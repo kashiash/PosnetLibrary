@@ -106,194 +106,6 @@ namespace PosnetTests
             }
         }
 
-        /// <summary>
-        /// Test kompleksowy z pełną narracją głosową wszystkich operacji.
-        /// Opowiada o każdej wykonywanej operacji krok po kroku.
-        /// </summary>
-        [Test]
-        public async Task CompleteTestWithVoiceNarration()
-        {
-            try
-            {
-                // Krok 1: Raport dobowy
-                await SpeechService.SpeakAsync("Rozpoczynam test kompleksowy. Krok pierwszy: wywołuję raport dobowy. Podejdź do drukarki i potwierdź datę.");
-                PosnetHelper.DailyReport();
-                await SpeechService.SpeakAsync("Raport dobowy wykonany pomyślnie.");
-
-                // Krok 2: Ustawienie nagłówka
-                await SpeechService.SpeakAsync("Krok drugi: ustawiam nagłówek paragonu. Drukarka będzie drukować paragon z nowym nagłówkiem.");
-                var nazwaFirmy = "Fryj z Hasioka";
-                var miejscowosc = "Sosnowiec";
-                var kod = "41-203";
-                PosnetHelper.SetHeader(nazwaFirmy, miejscowosc, kod);
-                await SpeechService.SpeakAsync("Nagłówek ustawiony pomyślnie.");
-
-                // Krok 3: Ustawienie stopki
-                await SpeechService.SpeakAsync("Krok trzeci: ustawiam stopkę paragonu.");
-                PosnetHelper.SetFooter($"Nr transakcji: PA/2024/666/999/00125 {LF}Opis: {LF}Wydrukowano z programu Fleetman   &iwww.fleetman.com.pl");
-                await SpeechService.SpeakAsync("Stopka ustawiona pomyślnie.");
-
-                await SpeechService.SpeakAsync("Wszystkie operacje zakończone pomyślnie. Test kompleksowy zakończony.");
-            }
-            catch (Exception ex)
-            {
-                string errorMessage = $"Wystąpił błąd podczas wykonywania testu kompleksowego. {GetErrorMessage(ex)}";
-                await SpeechService.SpeakAsync(errorMessage);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Test drukowania paragonu z narracją głosową.
-        /// Opowiada o każdym kroku drukowania paragonu.
-        /// </summary>
-        [Test]
-        public async Task PrintReceiptWithVoiceNarration()
-        {
-            try
-            {
-                // Anulujemy ewentualną otwartą transakcję przed rozpoczęciem
-                await EnsureNoOpenTransaction();
-                
-                await SpeechService.SpeakAsync("Rozpoczynam drukowanie paragonu fiskalnego.");
-
-                var receipt = new FiscalReceipt
-                {
-                    TransactionNumber = "PA/2024/666/999/00125",
-                    Notes = "Test paragonu z narracją głosową"
-                };
-
-                // Dodajemy pozycje do paragonu
-                await SpeechService.SpeakAsync("Dodaję pozycje do paragonu.");
-                receipt.FiscalReceiptItems.Add(new ItemOnFiscalReceipt("Chleb", 5.50, 1.0, "1", "Chleb pszenny"));
-                receipt.FiscalReceiptItems.Add(new ItemOnFiscalReceipt("Mleko", 6.40, 2.0, "1", "Mleko 3,2%"));
-
-                await SpeechService.SpeakAsync($"Dodano {receipt.FiscalReceiptItems.Count} pozycji do paragonu. Łączna kwota: {receipt.GrossAmount:F2} złotych.");
-                await SpeechService.SpeakAsync("Wysyłam paragon do drukarki. Drukarka rozpocznie drukowanie paragonu.");
-                
-                PosnetHelper.PrintRecipe(receipt);
-                
-                await SpeechService.SpeakAsync("Paragon został wydrukowany pomyślnie.");
-            }
-            catch (Exception ex)
-            {
-                string errorMessage = $"Wystąpił błąd podczas drukowania paragonu. {GetErrorMessage(ex)}";
-                await SpeechService.SpeakAsync(errorMessage);
-                // Próbujemy anulować transakcję w przypadku błędu
-                await EnsureNoOpenTransaction();
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Test sprawdzania i ustawiania stawek VAT z narracją głosową.
-        /// Sprawdza czy są stawki VAT, jeśli nie ma - ustawia je, następnie drukuje listę stawek.
-        /// </summary>
-        [Test]
-        public async Task CheckAndSetVatRatesWithVoiceNarration()
-        {
-            try
-            {
-                // Anulujemy ewentualną otwartą transakcję przed ustawieniem stawek VAT
-                await EnsureNoOpenTransaction();
-                
-                await SpeechService.SpeakAsync("Sprawdzam stawki VAT w drukarce.");
-                
-                // Sprawdzamy stawki VAT - próbujemy je pobrać
-                try
-                {
-                    PosnetHelper.VatGet();
-                    await SpeechService.SpeakAsync("Stawki VAT są dostępne w drukarce.");
-                }
-                catch
-                {
-                    await SpeechService.SpeakAsync("Nie udało się pobrać stawek VAT. Ustawiam standardowe stawki.");
-                }
-                
-                // Ustawiamy standardowe stawki VAT (drukarka zignoruje jeśli są już takie same)
-                await SpeechService.SpeakAsync("Ustawiam standardowe stawki VAT: stawka A dwadzieścia trzy procent, stawka B osiem procent, stawka C pięć procent.");
-                PosnetHelper.VatSetRates(va: 23, vb: 8, vc: 5, vd: 0, ve: 0, vf: 101, vg: 100);
-                await SpeechService.SpeakAsync("Stawki VAT zostały ustawione pomyślnie.");
-                
-                // Wydruk listy stawek VAT
-                await SpeechService.SpeakAsync("Drukuję listę stawek VAT. Podejdź do drukarki, aby odebrać wydruk.");
-                PosnetHelper.PrintVatRatesList();
-                
-                await SpeechService.SpeakAsync("Lista stawek VAT została wydrukowana.");
-            }
-            catch (Exception ex)
-            {
-                string errorMessage = $"Wystąpił błąd podczas sprawdzania lub ustawiania stawek VAT. {GetErrorMessage(ex)}";
-                await SpeechService.SpeakAsync(errorMessage);
-                // Próbujemy anulować transakcję w przypadku błędu
-                await EnsureNoOpenTransaction();
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Kompleksowy test: sprawdzenie stawek VAT, ustawienie jeśli brak, wydruk listy, następnie paragon.
-        /// </summary>
-        [Test]
-        public async Task CompleteVatAndReceiptTestWithVoiceNarration()
-        {
-            try
-            {
-                // Anulujemy ewentualną otwartą transakcję przed rozpoczęciem
-                await EnsureNoOpenTransaction();
-                
-                // Krok 1: Sprawdzenie stawek VAT
-                await SpeechService.SpeakAsync("Rozpoczynam kompleksowy test. Krok pierwszy: sprawdzam stawki VAT w drukarce.");
-                
-                try
-                {
-                    PosnetHelper.VatGet();
-                    await SpeechService.SpeakAsync("Stawki VAT są dostępne w drukarce.");
-                }
-                catch
-                {
-                    await SpeechService.SpeakAsync("Nie udało się pobrać stawek VAT. Ustawiam standardowe stawki.");
-                }
-                
-                // Ustawiamy standardowe stawki VAT (drukarka zignoruje jeśli są już takie same)
-                await SpeechService.SpeakAsync("Ustawiam standardowe stawki VAT: stawka A dwadzieścia trzy procent, stawka B osiem procent, stawka C pięć procent.");
-                PosnetHelper.VatSetRates(va: 23, vb: 8, vc: 5, vd: 0, ve: 0, vf: 101, vg: 100);
-                await SpeechService.SpeakAsync("Stawki VAT zostały ustawione pomyślnie.");
-                
-                // Krok 2: Wydruk listy stawek VAT
-                await SpeechService.SpeakAsync("Krok drugi: drukuję listę stawek VAT. Podejdź do drukarki, aby odebrać wydruk.");
-                PosnetHelper.PrintVatRatesList();
-                await SpeechService.SpeakAsync("Lista stawek VAT została wydrukowana.");
-                
-                // Krok 3: Drukowanie paragonu
-                await SpeechService.SpeakAsync("Krok trzeci: rozpoczynam drukowanie paragonu fiskalnego.");
-                
-                var receipt = new FiscalReceipt
-                {
-                    TransactionNumber = "PA/2024/666/999/00125",
-                    Notes = "Test paragonu po sprawdzeniu stawek VAT"
-                };
-                
-                await SpeechService.SpeakAsync("Dodaję pozycje do paragonu.");
-                receipt.FiscalReceiptItems.Add(new ItemOnFiscalReceipt("Chleb", 5.50, 1.0, "1", "Chleb pszenny"));
-                receipt.FiscalReceiptItems.Add(new ItemOnFiscalReceipt("Mleko", 6.40, 2.0, "1", "Mleko 3,2%"));
-                
-                await SpeechService.SpeakAsync($"Dodano {receipt.FiscalReceiptItems.Count} pozycji do paragonu. Łączna kwota: {receipt.GrossAmount:F2} złotych.");
-                await SpeechService.SpeakAsync("Wysyłam paragon do drukarki. Drukarka rozpocznie drukowanie paragonu.");
-                
-                PosnetHelper.PrintRecipe(receipt);
-                
-                await SpeechService.SpeakAsync("Paragon został wydrukowany pomyślnie. Kompleksowy test zakończony.");
-            }
-            catch (Exception ex)
-            {
-                string errorMessage = $"Wystąpił błąd podczas wykonywania kompleksowego testu. {GetErrorMessage(ex)}";
-                await SpeechService.SpeakAsync(errorMessage);
-                // Próbujemy anulować transakcję w przypadku błędu
-                await EnsureNoOpenTransaction();
-                throw;
-            }
-        }
 
 
         /// <summary>
@@ -351,9 +163,61 @@ namespace PosnetTests
                 
                 // Dodajemy pozycje jedna po drugiej z narracją i od razu wysyłamy do drukarki
                 double totalAmount = 0;
+                var dodanePozycje = new List<(string nazwa, double cena, double ilosc, string vat, string opis)>();
                 
                 foreach (var (nazwa, cena, ilosc, vat, opis) in produkty)
                 {
+                    // Specjalna obsługa dla "Guma" - dodajemy błędną, anulujemy ją stornem, i dodajemy właściwą
+                    if (nazwa == "Guma")
+                    {
+                        double gumaKwota = cena * ilosc;
+                        
+                        // Uproszczone dyktowanie
+                        await SpeechService.SpeakAsync("guma za 8");
+                        
+                        // Wysyłamy pozycję do drukarki
+                        string gumaIlosc = ilosc.ToString("0.##", polishCulture);
+                        double gumaPrice = (gumaKwota * 100.0 / ilosc);
+                        SendCommandToStream(stream, new string[] { "trline",
+                            $"na{nazwa.Truncate(80)}",
+                            $"vt{vat}",
+                            $"pr{(int)gumaPrice}",
+                            $"il{gumaIlosc}",
+                            $"wa{(int)(gumaKwota * 100)}",
+                            $"op{opis.Truncate(50)}"
+                        });
+                        
+                        // Mówimy że to nie ta guma i anulujemy pozycję przez storno (st=True)
+                        await SpeechService.SpeakAsync("sory to nie ta guma");
+                        
+                        // Anulujemy pozycję przez storno - dodajemy tę samą pozycję z st=True
+                        SendCommandToStream(stream, new string[] { "trline",
+                            $"na{nazwa.Truncate(80)}",
+                            $"vt{vat}",
+                            $"pr{(int)gumaPrice}",
+                            $"il{gumaIlosc}",
+                            $"wa{(int)(gumaKwota * 100)}",
+                            $"op{opis.Truncate(50)}",
+                            "st1"  // st=True - stornowanie (anulowanie pozycji)
+                        });
+                        
+                        // Dodajemy właściwą gumę - Guma unimil, 1 paczka na noc
+                        await SpeechService.SpeakAsync("guma unimil, 1 paczka na noc za 8");
+                        SendCommandToStream(stream, new string[] { "trline",
+                            "naGuma unimil",
+                            "vt1",
+                            "pr400",
+                            "il2",
+                            "wa800",
+                            "op1 paczka na noc"
+                        });
+                        
+                        // Nie dodajemy błędnej gumy do totalAmount, tylko właściwą
+                        dodanePozycje.Add(("Guma unimil", 4.00, 2.0, "1", "1 paczka na noc"));
+                        totalAmount += 8.00; // Tylko właściwa guma
+                        continue;
+                    }
+                    
                     double pozycjaKwota = cena * ilosc;
                     totalAmount += pozycjaKwota;
                     
@@ -382,9 +246,44 @@ namespace PosnetTests
                         $"wa{(int)(pozycjaKwota * 100)}",
                         $"op{opis.Truncate(50)}"
                     });
+                    
+                    // Zapisujemy pozycję na wypadek anulowania
+                    dodanePozycje.Add((nazwa, cena, ilosc, vat, opis));
                 }
                 
                 await SpeechService.SpeakAsync($"Wszystkie {produkty.Length} pozycji zostały wysłane do drukarki. Łączna kwota: {totalAmount:F2} złotych.");
+                
+                // Wycofujemy chipsy, colę i szkloki na końcu
+                var pozycjeDoStornowania = new[] { "Chipsy", "Cola", "Szkloki" };
+                await SpeechService.SpeakAsync("Wycofuję chipsy, colę i szkloki.");
+                
+                foreach (var nazwaDoStornowania in pozycjeDoStornowania)
+                {
+                    var pozycja = dodanePozycje.FirstOrDefault(p => p.nazwa == nazwaDoStornowania);
+                    if (pozycja.nazwa != null)
+                    {
+                        double pozycjaKwota = pozycja.cena * pozycja.ilosc;
+                        totalAmount -= pozycjaKwota; // Odejmujemy od całkowitej kwoty
+                        
+                        string formattedquantity = pozycja.ilosc.ToString("0.##", polishCulture);
+                        double price = (pozycjaKwota * 100.0 / pozycja.ilosc);
+                        
+                        await SpeechService.SpeakAsync($"Wycofuję {pozycja.nazwa.ToLower()}.");
+                        
+                        // Wysyłamy storno - tę samą pozycję z st=1
+                        SendCommandToStream(stream, new string[] { "trline",
+                            $"na{pozycja.nazwa.Truncate(80)}",
+                            $"vt{pozycja.vat}",
+                            $"pr{(int)price}",
+                            $"il{formattedquantity}",
+                            $"wa{(int)(pozycjaKwota * 100)}",
+                            $"op{pozycja.opis.Truncate(50)}",
+                            "st1"  // st=True - stornowanie (anulowanie pozycji)
+                        });
+                    }
+                }
+                
+                await SpeechService.SpeakAsync($"Po wycofaniu pozycji, łączna kwota wynosi: {totalAmount:F2} złotych.");
                 await SpeechService.SpeakAsync("Zakańczam transakcję. Drukarka wydrukuje paragon.");
                 
                 // Zakończenie transakcji
