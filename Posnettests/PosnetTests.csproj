@@ -4,9 +4,19 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+    <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+    <LangVersion>latest</LangVersion>
+    <EnableDefaultProgramFile>false</EnableDefaultProgramFile>
+    <UseAppHost>false</UseAppHost>
+    <GenerateProgramFile>false</GenerateProgramFile>
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +25,9 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
     <PackageReference Include="NUnit.Analyzers" Version="3.6.1" />
     <PackageReference Include="coverlet.collector" Version="3.2.0" />
+    <PackageReference Include="Whisper.net" Version="1.4.3" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.4.3" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 
   <ItemGroup>

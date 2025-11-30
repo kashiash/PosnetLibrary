@@ -213,7 +213,7 @@ namespace PosnetTests
                 await SpeechService.SpeakAsync($"Wszystkie {produkty.Length} pozycji zostały wysłane do drukarki. Łączna kwota: {totalAmount:F2} złotych.");
                 
                 var pozycjeDoStornowania = new[] { "Chipsy", "Cola", "Szkloki" };
-                await SpeechService.SpeakAsync("Wycofuję chipsy, colę i szkloki.");
+                await SpeechService.SpeakAsync("Przekroczono budżet Żulika!. Wycofuję chipsy, colę i szkloki.");
                 
                 foreach (var nazwaDoStornowania in pozycjeDoStornowania)
                 {
